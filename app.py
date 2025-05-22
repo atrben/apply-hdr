@@ -15,6 +15,7 @@ app = Flask(__name__)
 UPLOAD_FOLDER = 'static/uploads'
 PROCESSED_FOLDER = 'static/processed'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB maximum upload size
 
 # Ensure directories exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -22,6 +23,7 @@ os.makedirs(PROCESSED_FOLDER, exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['PROCESSED_FOLDER'] = PROCESSED_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -65,14 +67,30 @@ def process_image():
     output_filename = f"processed_HDR_{filename}"
     output_path = os.path.join(PROCESSED_FOLDER, output_filename)
     
-    icc_profile_path = os.path.join('assets', 'Profile ICC 2020.icc')
+    # Resize image if it's too large before processing
+    try:
+        img = Image.open(input_path)
+        max_size = (1024, 1024)  # Maximum dimensions for processing
+        if img.size[0] > max_size[0] or img.size[1] > max_size[1]:
+            img.thumbnail(max_size, Image.Resampling.LANCZOS)
+            resized_path = os.path.join(UPLOAD_FOLDER, f"resized_{filename}")
+            img.save(resized_path)
+            print(f"Image resized to {img.size} and saved to {resized_path}", file=sys.stderr)
+            input_path = resized_path
+        else:
+            print(f"Image size {img.size} is within limits, no resizing needed", file=sys.stderr)
+    except Exception as e:
+        print(f"Error resizing image: {e}", file=sys.stderr)
+        # Continue with original image if resizing fails
+    
+    icc_profile_path = os.path.join('assets', '2020_profile.icc')
     if os.path.exists(icc_profile_path):
         icc_profile = f'-profile "{icc_profile_path}"'
         note = "HDR effect applied with ICC profile."
         print(f"ICC profile found at: {icc_profile_path}", file=sys.stderr)
     else:
         icc_profile = ''
-        note = "HDR effect applied. Note: For full HDR effect, ensure 'Profile ICC 2020.icc' is in the 'assets' directory."
+        note = "HDR effect applied. Note: For full HDR effect, ensure '2020_profile.icc' is in the 'assets' directory."
         print(f"ICC profile not found at: {icc_profile_path}. Checked path: {os.path.abspath(icc_profile_path)}", file=sys.stderr)
     print(note, file=sys.stderr)
     
