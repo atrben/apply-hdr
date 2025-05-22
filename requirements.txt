@@ -1,0 +1,5 @@
+Flask
+Pillow
+numpy
+werkzeug
+gunicorn 
