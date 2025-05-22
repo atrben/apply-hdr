@@ -67,11 +67,14 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(data => {
             if (data.processed_filename) {
+                console.log('Processed filename received:', data.processed_filename);
                 downloadButton.style.display = 'inline-block';
                 downloadButton.style.backgroundColor = '';
                 downloadButton.style.cursor = 'pointer';
                 downloadButton.disabled = false;
+                console.log('Download button should now be enabled and clickable');
                 downloadButton.onclick = () => {
+                    console.log('Initiating download for:', `/download/${data.processed_filename}`);
                     window.location.href = `/download/${data.processed_filename}`;
                     downloadButton.style.display = 'none';
                     downloadStatus.style.display = 'inline-block';
@@ -79,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     setTimeout(() => {
                         downloadStatus.style.display = 'none';
                         downloadButton.style.display = 'inline-block';
+                        console.log('Download status hidden, button re-displayed');
                     }, 3000);
                 };
                 console.log('Processing successful, download button enabled');
@@ -89,8 +93,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     canvas.width = processedImg.width;
                     canvas.height = processedImg.height;
                     ctx.drawImage(processedImg, 0, 0);
+                    console.log('Processed image loaded and displayed in canvas');
+                };
+                processedImg.onerror = (error) => {
+                    console.error('Error loading processed image:', error);
                 };
                 processedImg.src = `/static/processed/${data.processed_filename}`;
+                console.log('Attempting to load processed image from:', `/static/processed/${data.processed_filename}`);
             } else {
                 console.error('No processed filename in response:', data);
             }
