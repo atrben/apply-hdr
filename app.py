@@ -86,10 +86,10 @@ def process_image():
     icc_profile_path = os.path.join('assets', '2020_profile.icc')
     if os.path.exists(icc_profile_path):
         app.logger.info(f"ICC profile found at: {icc_profile_path} (absolute: {os.path.abspath(icc_profile_path)})")
-        note = "HDR effect applied with ICC profile."
+        note = "HDR effect applied. Note: For full HDR effect, ensure '2020_profile.icc' is in the 'assets' directory."
     else:
         app.logger.warning(f"ICC profile not found at: {icc_profile_path}")
-        note = "HDR effect applied without ICC profile."
+        note = "HDR effect applied without ICC profile. Note: For full HDR effect, ensure '2020_profile.icc' is in the 'assets' directory."
     print(note, file=sys.stderr)
     
     temp_brightened_path = os.path.join(UPLOAD_FOLDER, f"brightened_{filename}")
